@@ -38,7 +38,7 @@ namespace Communication.IO.Tools
 			int readBytes = -1;
 			int nBytes = -1;
 			if (stream.CanRead
-			&&	(buffer.Length >= (offset + count)))
+			&& (buffer.Length >= (offset + count)))
 			{
 				readBytes = 0;
 				while (readBytes < count
@@ -67,9 +67,9 @@ namespace Communication.IO.Tools
 			}
 			if (offset + bytes <= buffer.Length)
 			{
-				for (int read=0;read < bytes;read++)
+				for (int read = 0; read < bytes; read++)
 				{
-					returnValue |= (long) buffer[offset + (littleEndian ? read : (bytes-read-1))] << (read << 3);
+					returnValue |= (long)buffer[offset + (littleEndian ? read : (bytes - read - 1))] << (read << 3);
 				}
 			}
 			return returnValue;
@@ -86,13 +86,13 @@ namespace Communication.IO.Tools
 		public static bool writeBytes(long values, byte[] buffer, int offset, int bytes, bool littleEndian)
 		{
 			if ((buffer != null)
-			&&  (offset + bytes) <= buffer.Length
-			&&  (bytes <= 8)
-			&&  (bytes > 0))
+			&& (offset + bytes) <= buffer.Length
+			&& (bytes <= 8)
+			&& (bytes > 0))
 			{
-				for (int read=0;read < bytes;read++)
+				for (int read = 0; read < bytes; read++)
 				{
-					buffer[offset + (littleEndian ? read : (bytes-read-1))] = (byte) ((values >> (read << 3)) & 0xff);
+					buffer[offset + (littleEndian ? read : (bytes - read - 1))] = (byte)((values >> (read << 3)) & 0xff);
 				}
 				return true;
 			}
@@ -124,9 +124,9 @@ namespace Communication.IO.Tools
 			if (length != 0)
 			{
 				char[] a = new char[length];
-				for (int x=0;x < length;x++)
+				for (int x = 0; x < length; x++)
 				{
-					a[x] = (char) buffer[offset + x];
+					a[x] = (char)buffer[offset + x];
 				}
 				ret = new string(a, 0, length);
 			}
@@ -143,23 +143,30 @@ namespace Communication.IO.Tools
 		public static string readString(Encoding enc, byte[] buffer, int offset, int length)
 		{
 			string ret = null;
-			
+
 			int strLen = stringLength(enc, buffer, offset, length);
-			
+
 			if (strLen != 0)
 			{
 				int maxLen = enc.GetMaxByteCount(strLen);
 				length = (length > maxLen) ? maxLen : length;
 				ret = enc.GetString(buffer, offset, length);
-				
+
 				if ((ret != null)
-				&&	(ret.Length > strLen))
+				&& (ret.Length > strLen))
 				{
 					ret = ret.Substring(0, strLen);
 				}
 			}
+
+			if (enc.GetType() == typeof(UnicodeEncoding))
+				ret = Encoding.ASCII.GetString(System.Text.Encoding.Unicode.GetBytes(ret));
+
+			if (ret != null && ret.EndsWith("??")) ret = ret.Replace("??", "");
+
 			return ret;
 		}
+
 		/// <summary>
 		/// Function to calculate length of string in buffer starting at an offset.
 		/// </summary>
@@ -181,13 +188,13 @@ namespace Communication.IO.Tools
 		/// <returns>length of string</returns>
 		public static int stringLength(byte[] buffer, int offset, int length, byte value)
 		{
-			int x=0;
+			int x = 0;
 
 			if (length < 0)
 			{
 				while ((buffer != null)
 					&& ((offset + x) < buffer.Length)
-					&& (buffer[offset+x] != value))
+					&& (buffer[offset + x] != value))
 				{
 					x++;
 				}
@@ -197,7 +204,7 @@ namespace Communication.IO.Tools
 				while ((buffer != null)
 					&& ((offset + x) < buffer.Length)
 					&& (x < length)
-					&& (buffer[offset+x] != value))
+					&& (buffer[offset + x] != value))
 				{
 					x++;
 				}
@@ -248,14 +255,14 @@ namespace Communication.IO.Tools
 		public static void writeString(Encoding enc, string src, byte[] buffer, int offset, int length)
 		{
 			if ((src != null)
-			&&	(buffer != null))
+			&& (buffer != null))
 			{
 				int nrChars = enc.GetMaxCharCount((buffer.Length < (offset + length)) ? buffer.Length - offset : length);
 
-                nrChars = (src.Length < nrChars) ? src.Length : nrChars;
+				nrChars = (src.Length < nrChars) ? src.Length : nrChars;
 
 				if (nrChars > 0)
-			        enc.GetBytes(src, 0, nrChars, buffer, offset);
+					enc.GetBytes(src, 0, nrChars, buffer, offset);
 			}
 		}
 		/// <summary>
@@ -268,8 +275,8 @@ namespace Communication.IO.Tools
 		/// <param name="length">number bytes to copy</param>
 		public static int copy(byte[] dst, int offdst, byte[] src, int offsrc, int length)
 		{
-			int loper=0;
-			for (;(loper < length) && ((offdst + loper) < dst.Length) && ((offsrc + loper) < src.Length);loper++)
+			int loper = 0;
+			for (; (loper < length) && ((offdst + loper) < dst.Length) && ((offsrc + loper) < src.Length); loper++)
 			{
 				dst[offdst + loper] = src[offsrc + loper];
 			}
@@ -284,7 +291,7 @@ namespace Communication.IO.Tools
 		/// <param name="type">number to empty to</param>
 		public static void emptyBuffer(byte[] buffer, int offset, int nrbytes, byte type)
 		{
-			for (int x=0;(x < nrbytes)&&((x + offset) < buffer.Length);x++)
+			for (int x = 0; (x < nrbytes) && ((x + offset) < buffer.Length); x++)
 			{
 				buffer[offset + x] = type;
 			}
